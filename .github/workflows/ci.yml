@@ -18,18 +18,14 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version-file: go.mod
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: latest
+      - name: Install Dependencies
+        run: go install github.com/go-task/task/v3/cmd/task@latest && task init
 
-      - name: go vet
-        run: go vet ./...
+      - name: Lint code
+        run: task lint
 
-      - name: gofmt check
-        run: test -z "$(gofmt -l -s .)"
 
   test:
     name: Test
@@ -63,7 +59,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version-file: go.mod
 
       - name: Build
         run: go build ./...
