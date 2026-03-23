@@ -173,6 +173,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 1rem;
+      margin-bottom: 2.5rem;
     }
     .btn-primary {
       background: linear-gradient(135deg, var(--accent) 0%, #0284c7 100%);
@@ -216,10 +217,13 @@
     }
     .hero-visual {
       position: relative;
+      text-align: center;
     }
     .hero-visual img {
       width: 100%;
+      max-width: 400px;
       height: auto;
+      margin: auto;
       border-radius: 100%;
       background-color: #0d2d49;
       box-shadow: 0 0 50px rgb(0, 174, 255);
@@ -308,6 +312,10 @@
         width: 60%;
         min-width: 256px;
       }
+      .hero-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
       .hero-text h1 {
         font-size: 2.5rem;
       }
@@ -344,7 +352,7 @@
       <div class="hero-text">
         <h1 class="py-4">Unified PostgreSQL Client</h1>
         <p>Security-first Go library with fluent queries, constructor-injected adaptors, and production-grade observability for PostgreSQL-compatible databases.</p>
-        <div class="hero-buttons gap-bottom">
+        <div class="hero-buttons">
           <a href="https://github.com/goozt/gopgbase" class="btn-primary" target="_blank">View on GitHub</a>
           <a href="#quickstart" class="btn-secondary">Quick Start</a>
         </div>
