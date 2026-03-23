@@ -1,0 +1,16 @@
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/examples ./examples/main_postgres.go"
+  bin = "./tmp/examples"
+  delay = 1000
+  exclude_dir = ["adaptors", "libs", "mocks", "tmp", "coverage"]
+  exclude_regex = ["_test.go"]
+  full_bin = "./tmp/examples"
+  include_ext = ["go"]
+  kill_delay = 500
+
+[misc]
+  clean_on_exit = true

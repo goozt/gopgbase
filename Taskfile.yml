@@ -1,0 +1,135 @@
+version: '3'
+
+env:
+  GOCOVERDIR: ./coverage
+
+tasks:
+  _install-ineffassign:
+    cmds:
+      - go install github.com/gordonklaus/ineffassign@latest
+    status:
+      - which ineffassign
+
+  _install-misspell:
+    cmds:
+      - go install github.com/client9/misspell/cmd/misspell@latest
+    status:
+      - which misspell
+
+  _install-gocyclo:
+    cmds:
+      - go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
+    status:
+      - which gocyclo
+
+  _install-golangci:
+    cmds:
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+    status:
+      - which golangci-lint
+
+  _install-gotests:
+    cmds:
+      - go install github.com/cweill/gotests/gotests@latest
+    status:
+      - which gotests
+
+  _install-gocov:
+    cmds:
+      - go install github.com/axw/gocov/gocov@latest
+    status:
+      - which gocov
+
+  _install-gocovxml:
+    cmds:
+      - go install github.com/AlekSi/gocov-xml@latest
+    status:
+      - which gocov-xml
+
+  _install-mockgen:
+    cmds:
+      - go install go.uber.org/mock/mockgen@latest
+    status:
+      - which mockgen
+
+  _install-air:
+    cmds:
+      - go install github.com/air-verse/air@latest
+    status:
+      - which air
+
+  init:
+    desc: Initialize development environment
+    deps:
+      - _install-ineffassign
+      - _install-misspell
+      - _install-gocyclo
+      - _install-golangci
+      - _install-gotests
+      - _install-gocov
+      - _install-gocovxml
+      - _install-mockgen
+      - _install-air
+
+  lint:
+    desc: Check if code is ready for version bump
+    cmds:
+      - go vet ./...
+      - test -z "$(gofmt -l -s .)"
+      - gocyclo -over 15 .
+      - ineffassign ./...
+      - misspell -error .
+      - golangci-lint run
+
+  test:
+    desc: Run tests
+    cmds:
+      - go test -race -v ./...
+
+  testcover:
+    desc: Run tests with coverage
+    cmds:
+      - mkdir -p {{.GOCOVERDIR}}
+      - go test -race -coverprofile={{.GOCOVERDIR}}/tests.out ./...
+      - go tool cover -html={{.GOCOVERDIR}}/tests.out -o {{.GOCOVERDIR}}/coverage.html
+
+  bench:
+    desc: Run benchmarks
+    cmds:
+      - go test -bench=. -benchmem ./...
+
+  gen:
+    desc: Generate mocks and code
+    cmds:
+      - mkdir -p mocks
+      - mockgen -source=datastore.go -destination=mocks/datastore_mock.go -package=mocks
+
+  example:
+    desc: "Run a specific example (usage: task example -- postgres)"
+    cmds:
+      - go run ./examples/main_{{.CLI_ARGS}}.go
+
+  examples:
+    desc: Run all examples sequentially
+    cmds:
+      - for: [postgres, supabase, cockroach, neon, redshift, timescale]
+        cmd: echo "Running {{.ITEM}} example..." && go build ./examples/main_{{.ITEM}}.go
+
+  dev:
+    desc: Development mode with hot reload
+    cmds:
+      - air -c .air.toml
+
+  ci:
+    desc: Full CI pipeline (lint + test + cover)
+    cmds:
+      - task: lint
+      - task: test
+      - task: testcover
+
+  clean:
+    desc: Clean generated artifacts
+    cmds:
+      - rm -rf {{.GOCOVERDIR}}
+      - rm -rf mocks/
+      - rm -rf tmp/
