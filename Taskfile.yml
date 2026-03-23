@@ -14,18 +14,23 @@ tasks:
   _install-fieldalignment: { cmds: [ go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest ], status: [ which fieldalignment ] }
   _install-govulncheck: { cmds: [ go install golang.org/x/vuln/cmd/govulncheck@latest ], status: [ which govulncheck ] }
 
-  init:
-    desc: Initialize development environment
+  install-lint-tools:
+    desc: Install linting tools
     deps:
       - _install-ineffassign
       - _install-misspell
       - _install-gocyclo
       - _install-golangci
+      - _install-fieldalignment
+      - _install-govulncheck
+
+  init:
+    desc: Initialize development environment
+    deps:
+      - install-lint-tools
       - _install-gotests
       - _install-mockgen
       - _install-air
-      - _install-fieldalignment
-      - _install-govulncheck
 
   fieldalignment-fix:
     desc: Fix field alignment issues

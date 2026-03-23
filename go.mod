@@ -1,6 +1,6 @@
 module github.com/goozt/gopgbase
 
-go 1.25.0
+go 1.25.8
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
