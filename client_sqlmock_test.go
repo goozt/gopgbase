@@ -199,8 +199,8 @@ func TestStructScan_Success(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).AddRow(1, "alice"))
 
 	type User struct {
-		ID   int    `db:"id"`
 		Name string `db:"name"`
+		ID   int    `db:"id"`
 	}
 
 	rows, err := client.DataStore().QueryContext(context.Background(), "SELECT id, name FROM users")

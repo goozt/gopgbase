@@ -11,7 +11,7 @@ tasks:
   _install-gotests: { cmds: [ go install github.com/cweill/gotests/gotests@latest ], status: [ which gotests ] }
   _install-mockgen: { cmds: [ go install go.uber.org/mock/mockgen@latest ], status: [ which mockgen ] }
   _install-air: { cmds: [ go install github.com/air-verse/air@latest ], status: [ which air ] }
-  _install-fieldalignment: { cmds: [golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest ], status: [ which fieldalignment ] }
+  _install-fieldalignment: { cmds: [ go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest ], status: [ which fieldalignment ] }
   _install-govulncheck: { cmds: [ go install golang.org/x/vuln/cmd/govulncheck@latest ], status: [ which govulncheck ] }
 
   init:
