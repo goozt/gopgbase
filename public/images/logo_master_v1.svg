@@ -11,7 +11,7 @@
    inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
    sodipodi:docname="logo_master_v1.svg"
    inkscape:export-batch-path="X:\me\Code\gopgbase\public\images"
-   inkscape:export-batch-name="logo_"
+   inkscape:export-batch-name="logo"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -26,9 +26,9 @@
      inkscape:pagecheckerboard="false"
      inkscape:deskcolor="#505050"
      inkscape:document-units="px"
-     inkscape:zoom="0.22627417"
-     inkscape:cx="1361.1806"
-     inkscape:cy="1593.2"
+     inkscape:zoom="0.64"
+     inkscape:cx="1312.5"
+     inkscape:cy="1077.3438"
      inkscape:window-width="2560"
      inkscape:window-height="1369"
      inkscape:window-x="1072"
@@ -311,7 +311,7 @@
        gradientTransform="matrix(0.74455367,0,0,0.74455367,132.91835,649.36239)" /><linearGradient
        inkscape:collect="always"
        xlink:href="#swatch38"
-       id="linearGradient45"
+       id="linearGradient4"
        gradientUnits="userSpaceOnUse"
        gradientTransform="matrix(1.0641847,0,0,1.0641847,-74.190065,-53.694927)"
        x1="108.01251"
@@ -320,7 +320,7 @@
        y2="798.36859" /><linearGradient
        inkscape:collect="always"
        xlink:href="#swatch38"
-       id="linearGradient66"
+       id="linearGradient5"
        gradientUnits="userSpaceOnUse"
        gradientTransform="matrix(1.0641847,0,0,1.0641847,-74.190065,-53.694927)"
        x1="108.01251"
@@ -329,7 +329,7 @@
        y2="798.36859" /><linearGradient
        inkscape:collect="always"
        xlink:href="#swatch28"
-       id="linearGradient67"
+       id="linearGradient6"
        gradientUnits="userSpaceOnUse"
        gradientTransform="matrix(0.74455367,0,0,0.74455367,132.91835,649.36239)" /></defs><g
      inkscape:label="Layer 1"
@@ -527,7 +527,7 @@
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';fill:#ffffff;fill-opacity:1;stroke-width:0.964739"
              id="tspan13">base</tspan></tspan></text></g><g
        id="g43"
-       transform="translate(1046.8475,-6.3060154)"><text
+       transform="matrix(1.351578,0,0,1.351578,957.93255,-287.50022)"><text
          xml:space="preserve"
          style="font-weight:600;font-size:78.1834px;font-family:'Work Sans';-inkscape-font-specification:'Work Sans Semi-Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke-width:1.62881"
          x="300.71619"
@@ -544,7 +544,7 @@
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke-width:1.62881"
              id="tspan38" /></tspan></text><text
          xml:space="preserve"
-         style="font-weight:600;font-size:117.658px;font-family:'Work Sans';-inkscape-font-specification:'Work Sans Semi-Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:url(#linearGradient45);fill-opacity:1;fill-rule:evenodd;stroke-width:2.45119"
+         style="font-weight:600;font-size:117.658px;font-family:'Work Sans';-inkscape-font-specification:'Work Sans Semi-Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:url(#linearGradient4);fill-opacity:1;fill-rule:evenodd;stroke-width:2.45119"
          x="181.82483"
          y="825.42188"
          id="text40"
@@ -553,7 +553,7 @@
            id="tspan40"
            x="181.82483"
            y="825.42188"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code Bold';fill:url(#linearGradient45);fill-opacity:1;fill-rule:evenodd;stroke-width:2.45119">go</tspan></text><text
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code Bold';fill:url(#linearGradient4);fill-opacity:1;fill-rule:evenodd;stroke-width:2.45119">go</tspan></text><text
          xml:space="preserve"
          style="font-weight:600;font-size:46.3076px;font-family:'Work Sans';-inkscape-font-specification:'Work Sans Semi-Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#ffffff;fill-opacity:1;stroke-width:0.964739"
          x="324.62836"
@@ -567,7 +567,7 @@
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';fill:#ffffff;fill-opacity:1;stroke-width:0.964739"
              id="tspan41">base</tspan></tspan></text></g><g
        id="g51"
-       transform="translate(1569.0975,-6.3060154)"><text
+       transform="matrix(1.351578,0,0,1.351578,1480.1826,-287.50022)"><text
          xml:space="preserve"
          style="font-weight:600;font-size:78.1834px;font-family:'Work Sans';-inkscape-font-specification:'Work Sans Semi-Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#0d2d49;fill-opacity:1;fill-rule:evenodd;stroke-width:1.62881"
          x="300.71619"
@@ -584,7 +584,7 @@
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';fill:#0d2d49;fill-opacity:1;fill-rule:evenodd;stroke-width:1.62881"
              id="tspan47" /></tspan></text><text
          xml:space="preserve"
-         style="font-weight:600;font-size:117.658px;font-family:'Work Sans';-inkscape-font-specification:'Work Sans Semi-Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:url(#linearGradient66);fill-opacity:1;fill-rule:evenodd;stroke-width:2.45119"
+         style="font-weight:600;font-size:117.658px;font-family:'Work Sans';-inkscape-font-specification:'Work Sans Semi-Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:url(#linearGradient5);fill-opacity:1;fill-rule:evenodd;stroke-width:2.45119"
          x="181.82483"
          y="825.42188"
          id="text49"
@@ -593,9 +593,9 @@
            id="tspan49"
            x="181.82483"
            y="825.42188"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code Bold';fill:url(#linearGradient66);fill-opacity:1;fill-rule:evenodd;stroke-width:2.45119">go</tspan></text><text
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code Bold';fill:url(#linearGradient5);fill-opacity:1;fill-rule:evenodd;stroke-width:2.45119">go</tspan></text><text
          xml:space="preserve"
-         style="font-weight:600;font-size:46.3076px;font-family:'Work Sans';-inkscape-font-specification:'Work Sans Semi-Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:url(#linearGradient67);stroke-width:0.964739"
+         style="font-weight:600;font-size:46.3076px;font-family:'Work Sans';-inkscape-font-specification:'Work Sans Semi-Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:url(#linearGradient6);stroke-width:0.964739"
          x="324.62836"
          y="851.6377"
          id="text51"><tspan
@@ -603,8 +603,8 @@
            id="tspan51"
            x="324.62836"
            y="851.6377"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code Bold';fill:url(#linearGradient67);fill-opacity:1;stroke-width:0.964739"><tspan
-             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';fill:url(#linearGradient67);fill-opacity:1;stroke-width:0.964739"
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code Bold';fill:url(#linearGradient6);fill-opacity:1;stroke-width:0.964739"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';fill:url(#linearGradient6);fill-opacity:1;stroke-width:0.964739"
              id="tspan50">base</tspan></tspan></text></g><g
        id="g62"
        transform="translate(1562.3824,-5.0986332)"><g

@@ -1,19 +1,460 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-title" content="goPGbase" />
-    <link rel="manifest" href="/site.webmanifest" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="goPGbase" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <title>goPGbase</title>
+  <meta name="description" content="A unified, security-first Go client for PostgreSQL-compatible databases with constructor-injected adaptors, fluent query building, and production-grade observability.">
+  <style>
+    :root {
+      --bg: #020617;
+      --bg2: #0f172a;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #0ea5e9;
+      --accent-hover: #0284c7;
+      --border: rgba(255, 255, 255, 0.12);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --code: #34d399;
+      --mono: "JetBrains Mono", "SF Mono", "Monaco", monospace;
+      --glass-bg: rgba(15, 23, 42, 0.52);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.15), transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15), transparent 50%),
+        radial-gradient(circle at 0% 50%, rgba(120, 219, 255, 0.15), transparent 50%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    a {
+      text-decoration: none !important;
+      color: inherit;
+    }
+    a:hover {
+      text-decoration: none !important;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    /* Sticky Glass Navbar */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .logo-nav {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .logo-nav img {
+      height: 3rem;
+      width: auto;
+      border-radius: 100%;
+      background-color: #0d2d49;
+      box-shadow: 0 0 15px rgb(0, 174, 255);
+    }
+    .logo-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: white;
+      text-decoration: none;
+    }
+    .logo-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .nav-link {
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: white;
+    }
+    .github-btn {
+      background: rgba(14, 165, 233, 0.15);
+      color: white;
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      padding: 0.5rem 1.25rem !important;
+    }
+    .github-btn:hover {
+      background: rgba(14, 165, 233, 0.25);
+      border-color: var(--accent);
+    }
+    /* Hero Glass Panel */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 10rem 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 30% 30%, rgba(14, 165, 233, 0.12), transparent 40%),
+        radial-gradient(circle at 70% 70%, rgba(59, 130, 246, 0.10), transparent 40%);
+      z-index: 0;
+    }
+    .hero-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-text h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin: 0 0 1rem 0;
+      background: linear-gradient(135deg, white 0%, #e2e8f0 50%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-text p {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 28rem;
+      margin: 0 0 2rem 0;
+    }
+    .hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, #0284c7 100%);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      box-shadow: 0 10px 30px rgba(14, 165, 233, 0.4);
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(14, 165, 233, 0.5);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 9999px;
+      font-weight: 500;
+      font-size: 1rem;
+      text-decoration: none;
+      backdrop-filter: blur(16px);
+      transition: all 0.2s ease;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .glass-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .hero-visual {
+      position: relative;
+    }
+    .hero-visual img {
+      width: 100%;
+      height: auto;
+      border-radius: 100%;
+      background-color: #0d2d49;
+      box-shadow: 0 0 50px rgb(0, 174, 255);
+    }
+    
+    /* Sections */
+    section {
+      padding: 5rem 0;
+    }
 
-    <title>goPGbase</title>
-    <meta rel="description" content="A unified, security-first Go client for PostgreSQL-compatible databases with constructor-injected adaptors, fluent query building, and production-grade observability.">
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin: 3rem 0 3rem 0;
+      color: white;
+    }
+
+    .py-4 {
+      padding-top: 2rem;
+      padding-bottom: 2rem;
+    }
+    
+    .gap-bottom > * {
+      margin-bottom: 1rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .feature-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+      padding: 2rem;
+      backdrop-filter: blur(20px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    .codeblock {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin: 0 0;
+      overflow-x: auto;
+      backdrop-filter: blur(16px);
+    }
+    .codeblock code {
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      color: #e2e8f0;
+    }
+    footer {
+      text-align: center;
+      padding: 3rem 0;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-subtle);
+    }
+    footer {
+        margin-top: 3rem;
+    }
+    @media (max-width: 1280px) {
+      .hero-content {
+        padding: 0 4rem;
+      }
+    }
+    @media (max-width: 768px) {
+      .hero {
+        padding: 5rem 0;
+      }
+      .hero-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
+      }
+      .hero-visual {
+        order: -1;
+        margin: auto;
+        width: 60%;
+        min-width: 256px;
+      }
+      .hero-text h1 {
+        font-size: 2.5rem;
+      }
+      .nav-links {
+        display: none;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div>Site under maintenance. Try again later.</div>
+  <!-- Sticky Glass Navbar -->
+  <header>
+    <div class="header-inner">
+      <a href="#top" class="logo-nav">
+        <img src="images/logo_icon-dark.png" alt="goPGbase" />
+        <div>
+          <div class="logo-text">goPGbase</div>
+          <div class="logo-subtitle">PostgreSQL client</div>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <a href="#quickstart" class="nav-link">Quick Start</a>
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#security" class="nav-link">Security</a>
+        <a href="#contributing" class="nav-link">Contribute</a>
+        <a href="https://github.com/goozt/gopgbase" class="nav-link github-btn" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Glassmorphism Hero -->
+  <section id="top" class="hero">
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1 class="py-4">Unified PostgreSQL Client</h1>
+        <p>Security-first Go library with fluent queries, constructor-injected adaptors, and production-grade observability for PostgreSQL-compatible databases.</p>
+        <div class="hero-buttons gap-bottom">
+          <a href="https://github.com/goozt/gopgbase" class="btn-primary" target="_blank">View on GitHub</a>
+          <a href="#quickstart" class="btn-secondary">Quick Start</a>
+        </div>
+        <div class="grid grid-cols-3 gap-4 mt-12 max-w-lg gap-bottom">
+          <div class="glass-card text-center">
+            <div class="text-2xl font-bold text-white">🚀</div>
+            <div class="text-sm text-slate-400">100% Pure Go</div>
+          </div>
+          <div class="glass-card text-center">
+            <div class="text-2xl font-bold text-white">🔒</div>
+            <div class="text-sm text-slate-400">Secure-first</div>
+          </div>
+          <div class="glass-card text-center">
+            <div class="text-2xl font-bold text-white">📊</div>
+            <div class="text-sm text-slate-400">Observable</div>
+          </div>
+          <div class="glass-card text-center">
+            <div class="text-2xl font-bold text-white">📜</div>
+            <div class="text-sm text-slate-400">MIT License</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <img src="images/logo_icon-dark.png" alt="goPGbase demo" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start -->
+  <section id="quickstart" class="container">
+    <h2 class="section-title">Quick Start</h2>
+    <div class="codeblock">
+      <pre><code><span style="color: #a3be8c;">import</span> <span style="color: #8fa5c2;">"github.com/goozt/gopgbase"</span>
+
+<span style="color: #5e81ac;">opts</span> := gopgbase.<span style="color: #d08770;">Options</span>{
+  Addr:     <span style="color: #a3be8c;">"localhost:5432"</span>,
+  User:     <span style="color: #a3be8c;">"app"</span>,
+  Password: <span style="color: #a3be8c;">"securepassword"</span>,
+  Database: <span style="color: #a3be8c;">"myapp"</span>,
+  Logger:   slog.<span style="color: #d08770;">Default</span>(),
+}
+
+<span style="color: #5e81ac;">client</span> := gopgbase.<span style="color: #d08770;">NewClient</span>(opts)
+
+<span style="color: #bf616a;">err</span> := client.
+  Query(<span style="color: #a3be8c;">"SELECT id, name FROM users WHERE tenant_id = ?"</span>).
+  WithArgs(<span style="color: #a3be8c;">"tenant-1"</span>).
+  ScanAll(context.<span style="color: #d08770;">Background</span>(), &users)</code></pre>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="container">
+    <h2 class="section-title">Core Features</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <h3>🔗 Unified Client</h3>
+        <p>Works with PostgreSQL, RDS, CockroachDB, YugabyteDB using one API.</p>
+      </div>
+      <div class="feature-card">
+        <h3>💉 Dependency Injection</h3>
+        <p>Constructor-injected logger, tracer, metrics for testability.</p>
+      </div>
+      <div class="feature-card">
+        <h3>✨ Fluent Queries</h3>
+        <p>Chainable SELECT, INSERT, UPDATE with auto parameterization.</p>
+      </div>
+      <div class="feature-card">
+        <h3>📈 Production Ready</h3>
+        <p>OpenTelemetry, slog, metrics out of the box.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security -->
+  <section id="security" class="container">
+    <h2 class="section-title">Security-First</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <h3>SQL-Safe by Default</h3>
+        <p>All inputs parameterized, no string concatenation.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Pure Go</h3>
+        <p>No CGO, minimal attack surface, easy to audit.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Connection Safeguards</h3>
+        <p>Timeouts, circuit breakers, resource limits.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contributing -->
+  <section id="contributing" class="container">
+    <h2 class="section-title">Get Involved</h2>
+    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+      <p style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 2rem;">
+        Open source contributions welcome! Add adaptors, query helpers, or observability integrations.
+      </p>
+      <a href="https://github.com/goozt/gopgbase/issues" class="btn-primary" style="display: inline-block; padding: 1rem 2rem; font-size: 1.1rem;">
+        Open an Issue →
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 goPGbase. Built with ❤️ for Go developers. <a href="https://github.com/goozt/gopgbase" style="color: var(--accent);">GitHub</a></p>
+    </div>
+  </footer>
 </body>
 </html>
