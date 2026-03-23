@@ -1,5 +1,14 @@
 # gopgbase
 
+<p align="center">
+  <a href="https://github.com/goozt/gopgbase/actions/workflows/ci.yml"><img src="https://github.com/goozt/gopgbase/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://codecov.io/gh/goozt/gopgbase"><img src="https://codecov.io/gh/goozt/gopgbase/graph/badge.svg?token=huye2tXBAg" alt="codecov"></a>
+  <a href="https://goreportcard.com/report/github.com/goozt/gopgbase"><img src="https://goreportcard.com/badge/github.com/goozt/gopgbase" alt="Go Report Card"></a>
+  <a href="https://pkg.go.dev/github.com/goozt/gopgbase"><img src="https://pkg.go.dev/badge/github.com/goozt/gopgbase.svg" alt="Go Reference"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://github.com/goozt/gopgbase/releases/latest"><img src="https://img.shields.io/github/v/release/goozt/gopgbase" alt="Release"></a>
+</p>
+
 A unified, security-first Go client for PostgreSQL-compatible databases with constructor-injected adaptors, fluent query building, and production-grade observability.
 
 ## Overview
