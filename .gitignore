@@ -45,3 +45,4 @@ mocks/
 
 # Debug
 __debug_bin*
+coverage/

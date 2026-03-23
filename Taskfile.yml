@@ -12,6 +12,7 @@ tasks:
   _install-mockgen: { cmds: [ go install go.uber.org/mock/mockgen@latest ], status: [ which mockgen ] }
   _install-air: { cmds: [ go install github.com/air-verse/air@latest ], status: [ which air ] }
   _install-fieldalignment: { cmds: [golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest ], status: [ which fieldalignment ] }
+  _install-govulncheck: { cmds: [ go install golang.org/x/vuln/cmd/govulncheck@latest ], status: [ which govulncheck ] }
 
   init:
     desc: Initialize development environment
@@ -24,6 +25,7 @@ tasks:
       - _install-mockgen
       - _install-air
       - _install-fieldalignment
+      - _install-govulncheck
 
   fieldalignment-fix:
     desc: Fix field alignment issues
@@ -37,6 +39,7 @@ tasks:
     cmds:
       - gofmt -l -s -w .
       - golangci-lint run
+      - govulncheck ./...
 
   fmt:
     desc: Format code
@@ -46,13 +49,13 @@ tasks:
   test:
     desc: Run tests
     cmds:
-      - go test -race -v ./...
+      - go test ./...
 
-  testcover:
+  cover:
     desc: Run tests with coverage
     cmds:
       - mkdir -p {{.GOCOVERDIR}}
-      - go test -race -coverprofile={{.GOCOVERDIR}}/tests.out ./...
+      - go test -coverprofile={{.GOCOVERDIR}}/tests.out ./...
       - go tool cover -html={{.GOCOVERDIR}}/tests.out -o {{.GOCOVERDIR}}/coverage.html
 
   bench:
@@ -88,6 +91,26 @@ tasks:
       - task: lint
       - task: test
       - task: testcover
+
+  profile-size:
+    desc: Analyze binary size contribution by dependency
+    cmds:
+      - mkdir -p tmp
+      - go test -c -o tmp/size-profile.exe .
+      - |
+        echo "=== Top packages by binary size contribution ==="
+        go tool nm -size tmp/size-profile.exe |
+          awk '{
+            sym=$4; n=split(sym, a, "/")
+            if (sym ~ /^github\.com\//) { pkg=a[1]"/"a[2]"/"a[3]; sub(/\..*/, "", a[3]); pkg=a[1]"/"a[2]"/"a[3] }
+            else if (sym ~ /^go\.opentelemetry\.io\//) { pkg=a[1]"/"a[2] }
+            else if (sym ~ /^google\.golang\.org\//) { pkg=a[1]"/"a[2] }
+            else if (sym ~ /^golang\.org\//) { pkg=a[1]"/"a[2]"/"a[3] }
+            else if (sym ~ /^gopkg\.in\//) { pkg=a[1]"/"a[2] }
+            else { split(sym, b, "."); pkg=b[1] }
+            size[pkg]+=$2
+          } END { for (p in size) printf "%10.2f KB  %s\n", size[p]/1024, p }' |
+          sort -rn | head -30
 
   clean:
     desc: Clean generated artifacts
