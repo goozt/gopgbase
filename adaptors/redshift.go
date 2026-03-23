@@ -9,22 +9,11 @@ import (
 
 // RedshiftConfig configures a connection to Amazon Redshift.
 type RedshiftConfig struct {
-	BaseConfig
-
-	// ConnectionURL is an optional full connection string.
-	ConnectionURL string `json:"connection_url,omitempty"`
-
-	// ClusterIdentifier is the Redshift cluster name.
+	ConnectionURL     string `json:"connection_url,omitempty"`
 	ClusterIdentifier string `json:"cluster_identifier,omitempty"`
-
-	// Region is the AWS region (e.g., "us-east-1").
-	Region string `json:"region,omitempty"`
-
-	// SSLRootCert path to the Amazon Redshift CA bundle.
-	SSLRootCert string `json:"ssl_root_cert,omitempty"`
-
-	// StatementTimeout sets a default statement timeout in milliseconds
-	// for long-running OLAP queries. 0 means no timeout.
+	Region            string `json:"region,omitempty"`
+	SSLRootCert       string `json:"ssl_root_cert,omitempty"`
+	BaseConfig
 	StatementTimeout int `json:"statement_timeout,omitempty"`
 }
 

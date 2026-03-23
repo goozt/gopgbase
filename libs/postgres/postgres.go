@@ -59,7 +59,7 @@ func (em *ExtensionManager) List(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/postgres: list extensions: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var exts []string
 	for rows.Next() {
@@ -91,12 +91,12 @@ func (l *PostgresLibrary) VacuumAnalyze(ctx context.Context, table string, analy
 
 // IndexRecommendation represents a suggested index.
 type IndexRecommendation struct {
-	Table       string  `json:"table"`
-	Columns     string  `json:"columns"`
-	SeqScans    int64   `json:"seq_scans"`
-	SeqTupRead  int64   `json:"seq_tup_read"`
-	IdxScans    int64   `json:"idx_scans"`
-	Suggestion  string  `json:"suggestion"`
+	Table      string `json:"table"`
+	Columns    string `json:"columns"`
+	Suggestion string `json:"suggestion"`
+	SeqScans   int64  `json:"seq_scans"`
+	SeqTupRead int64  `json:"seq_tup_read"`
+	IdxScans   int64  `json:"idx_scans"`
 }
 
 // IndexAdvisor analyzes pg_stat_user_tables to recommend indexes for
@@ -114,7 +114,7 @@ func (l *PostgresLibrary) IndexAdvisor(ctx context.Context, table string) ([]Ind
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/postgres: index advisor: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var recs []IndexRecommendation
 	for rows.Next() {
@@ -142,7 +142,7 @@ func (l *PostgresLibrary) ReplicationLag(ctx context.Context) (map[string]string
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/postgres: replication lag: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	result := make(map[string]string)
 	for rows.Next() {
@@ -158,11 +158,11 @@ func (l *PostgresLibrary) ReplicationLag(ctx context.Context) (map[string]string
 
 // PgStatStatement represents a row from pg_stat_statements.
 type PgStatStatement struct {
-	Query         string  `json:"query"`
-	Calls         int64   `json:"calls"`
-	TotalTimeMS   float64 `json:"total_time_ms"`
-	MeanTimeMS    float64 `json:"mean_time_ms"`
-	Rows          int64   `json:"rows"`
+	Query       string  `json:"query"`
+	Calls       int64   `json:"calls"`
+	TotalTimeMS float64 `json:"total_time_ms"`
+	MeanTimeMS  float64 `json:"mean_time_ms"`
+	Rows        int64   `json:"rows"`
 }
 
 // PgStatStatements returns the top N queries from pg_stat_statements.
@@ -183,7 +183,7 @@ func (l *PostgresLibrary) PgStatStatements(ctx context.Context, topN int, _ bool
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/postgres: pg_stat_statements: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var stmts []PgStatStatement
 	for rows.Next() {
@@ -199,10 +199,10 @@ func (l *PostgresLibrary) PgStatStatements(ctx context.Context, topN int, _ bool
 
 // BlockingQuery represents a blocking/waiting query pair.
 type BlockingQuery struct {
-	BlockedPID    int    `json:"blocked_pid"`
 	BlockedQuery  string `json:"blocked_query"`
-	BlockingPID   int    `json:"blocking_pid"`
 	BlockingQuery string `json:"blocking_query"`
+	BlockedPID    int    `json:"blocked_pid"`
+	BlockingPID   int    `json:"blocking_pid"`
 }
 
 // LockWatcher detects blocking queries in the database.
@@ -227,7 +227,7 @@ func (l *PostgresLibrary) LockWatcher(ctx context.Context) ([]BlockingQuery, err
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/postgres: lock watcher: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var locks []BlockingQuery
 	for rows.Next() {

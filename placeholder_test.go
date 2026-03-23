@@ -269,21 +269,21 @@ func TestParseDollarTag(t *testing.T) {
 	tests := []struct {
 		name  string
 		query string
-		pos   int
 		want  string
+		pos   int
 	}{
-		{"empty string", "", 0, ""},
-		{"not dollar", "abc", 0, ""},
-		{"double dollar", "$$", 0, "$$"},
-		{"tagged", "$tag$rest", 0, "$tag$"},
-		{"underscore tag", "$_tag$rest", 0, "$_tag$"},
-		{"digit after dollar", "$1", 0, ""},
-		{"tag with digits", "$tag1$rest", 0, "$tag1$"},
-		{"no closing dollar", "$tag", 0, ""},
-		{"position in middle", "xx$tag$", 2, "$tag$"},
-		{"position past end", "abc", 5, ""},
-		{"non-identifier char in tag", "$tag!$", 0, ""},
-		{"dollar followed by space", "$ abc", 0, ""},
+		{"empty string", "", "", 0},
+		{"not dollar", "abc", "", 0},
+		{"double dollar", "$$", "$$", 0},
+		{"tagged", "$tag$rest", "$tag$", 0},
+		{"underscore tag", "$_tag$rest", "$_tag$", 0},
+		{"digit after dollar", "$1", "", 0},
+		{"tag with digits", "$tag1$rest", "$tag1$", 0},
+		{"no closing dollar", "$tag", "", 0},
+		{"position in middle", "xx$tag$", "$tag$", 2},
+		{"position past end", "abc", "", 5},
+		{"non-identifier char in tag", "$tag!$", "", 0},
+		{"dollar followed by space", "$ abc", "", 0},
 	}
 
 	for _, tt := range tests {

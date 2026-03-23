@@ -78,7 +78,7 @@ func (a *AuthLibrary) ValidateJWT(ctx context.Context, token string) (map[string
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/supabase: validate jwt: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("gopgbase/supabase: validate jwt: HTTP %d", resp.StatusCode)
@@ -147,7 +147,7 @@ func (l *SupabaseLibrary) InvokeEdgeFunction(ctx context.Context, functionName s
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/supabase: invoke edge function: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	result, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -176,7 +176,7 @@ func (l *SupabaseLibrary) UploadFile(ctx context.Context, bucket, path string, d
 	if err != nil {
 		return fmt.Errorf("gopgbase/supabase: upload file: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
@@ -205,7 +205,7 @@ func (l *SupabaseLibrary) GenerateSignedURL(ctx context.Context, bucket, path st
 	if err != nil {
 		return "", fmt.Errorf("gopgbase/supabase: generate signed url: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	var result map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -260,7 +260,7 @@ func (um *UserManager) CreateUser(ctx context.Context, email, password string, m
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/supabase: create user: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	var user map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
@@ -288,7 +288,7 @@ func (um *UserManager) ListUsers(ctx context.Context) ([]map[string]any, error) 
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/supabase: list users: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	var result struct {
 		Users []map[string]any `json:"users"`

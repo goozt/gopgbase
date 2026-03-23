@@ -10,18 +10,18 @@ import (
 
 // ExplainResult holds the parsed output of EXPLAIN ANALYZE.
 type ExplainResult struct {
-	Query      string         `json:"query"`
-	RawPlan    string         `json:"raw_plan"`
-	PlanJSON   []any          `json:"plan_json,omitempty"`
-	TotalCost  float64        `json:"total_cost,omitempty"`
-	TotalTime  float64        `json:"total_time_ms,omitempty"`
+	Query     string  `json:"query"`
+	RawPlan   string  `json:"raw_plan"`
+	PlanJSON  []any   `json:"plan_json,omitempty"`
+	TotalCost float64 `json:"total_cost,omitempty"`
+	TotalTime float64 `json:"total_time_ms,omitempty"`
 }
 
 // SlowQuery represents a query that exceeded a latency threshold.
 type SlowQuery struct {
-	Query      string  `json:"query"`
-	Calls      int64   `json:"calls"`
-	MeanTimeMS float64 `json:"mean_time_ms"`
+	Query       string  `json:"query"`
+	Calls       int64   `json:"calls"`
+	MeanTimeMS  float64 `json:"mean_time_ms"`
 	TotalTimeMS float64 `json:"total_time_ms"`
 }
 
@@ -33,7 +33,7 @@ func ExplainAnalyze(ctx context.Context, client *gopgbase.Client, query string, 
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/common: explain analyze: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var planText string
 	for rows.Next() {
@@ -75,7 +75,7 @@ func SlowQueryLog(ctx context.Context, client *gopgbase.Client, thresholdMS int)
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/common: slow query log: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var results []SlowQuery
 	for rows.Next() {

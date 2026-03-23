@@ -10,8 +10,8 @@ import (
 func TestBuildPostgresDSN_FieldBased(t *testing.T) {
 	tests := []struct {
 		name string
-		cfg  PostgresConfig
 		want string
+		cfg  PostgresConfig
 	}{
 		{
 			name: "basic secure",
@@ -44,10 +44,10 @@ func TestBuildPostgresDSN_FieldBased(t *testing.T) {
 			name: "default port",
 			cfg: PostgresConfig{
 				BaseConfig: BaseConfig{
-					Host: "localhost",
-					User: "postgres",
+					Host:     "localhost",
+					User:     "postgres",
 					Password: "pass",
-					DBName: "test",
+					DBName:   "test",
 				},
 			},
 			want: "host=localhost port=5432 user=postgres password=pass dbname=test sslmode=verify-full",
@@ -106,10 +106,10 @@ func TestBuildPostgresDSN_FieldBased(t *testing.T) {
 
 func TestBuildPostgresDSN_ConnectionURL(t *testing.T) {
 	tests := []struct {
-		name     string
-		cfg      PostgresConfig
-		wantSSL  string
-		wantErr  bool
+		name    string
+		wantSSL string
+		cfg     PostgresConfig
+		wantErr bool
 	}{
 		{
 			name: "URL with secure default",
@@ -152,8 +152,8 @@ func TestApplySSLMode(t *testing.T) {
 	tests := []struct {
 		name     string
 		url      string
-		insecure bool
 		wantSSL  string
+		insecure bool
 	}{
 		{
 			name:     "add verify-full",

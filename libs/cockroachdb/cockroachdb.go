@@ -71,7 +71,7 @@ func (m *MultiRegionOps) ListRegions() ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/cockroachdb: list regions: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var regions []string
 	for rows.Next() {

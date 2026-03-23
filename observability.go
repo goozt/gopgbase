@@ -18,32 +18,29 @@ import (
 
 // SlowQuery represents a query that exceeded the configured latency threshold.
 type SlowQuery struct {
+	Time     time.Time     `json:"time"`
 	Query    string        `json:"query"`
 	Duration time.Duration `json:"duration_ns"`
-	Time     time.Time     `json:"time"`
 }
 
 // ExplainPlan holds the output of EXPLAIN ANALYZE.
 type ExplainPlan struct {
+	JSONPlan map[string]any `json:"json_plan,omitempty"`
 	Query    string         `json:"query"`
 	Plan     string         `json:"plan"`
-	JSONPlan map[string]any `json:"json_plan,omitempty"`
 }
 
 // ObservabilityLibrary provides database monitoring, metrics, and tracing.
 type ObservabilityLibrary struct {
-	client *Client
-
-	mu          sync.RWMutex
-	enabled     bool
-	slowQueries []SlowQuery
-	sampleRate  float64
-
-	// Prometheus metrics
-	queryCounter   *prometheus.CounterVec
-	queryDuration  *prometheus.HistogramVec
-	errorCounter   *prometheus.CounterVec
-	connPoolGauge  *prometheus.GaugeVec
+	client        *Client
+	queryCounter  *prometheus.CounterVec
+	queryDuration *prometheus.HistogramVec
+	errorCounter  *prometheus.CounterVec
+	connPoolGauge *prometheus.GaugeVec
+	slowQueries   []SlowQuery
+	sampleRate    float64
+	mu            sync.RWMutex
+	enabled       bool
 }
 
 // EnableObservability initializes and returns the observability subsystem.
@@ -126,11 +123,11 @@ func (o *ObservabilityLibrary) ConnectionPoolMetrics() map[string]int {
 	}
 	stats := u.Unwrap().Stats()
 	return map[string]int{
-		"max_open":     stats.MaxOpenConnections,
-		"open":         stats.OpenConnections,
-		"in_use":       stats.InUse,
-		"idle":         stats.Idle,
-		"wait_count":   int(stats.WaitCount),
+		"max_open":         stats.MaxOpenConnections,
+		"open":             stats.OpenConnections,
+		"in_use":           stats.InUse,
+		"idle":             stats.Idle,
+		"wait_count":       int(stats.WaitCount),
 		"wait_duration_ms": int(stats.WaitDuration.Milliseconds()),
 	}
 }
@@ -198,7 +195,7 @@ func (o *ObservabilityLibrary) ExplainAnalyze(ctx context.Context, query string,
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase: explain analyze: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var planJSON string
 	for rows.Next() {
@@ -287,7 +284,7 @@ func (c *Client) ImportGrafanaDashboard(grafanaURL, apiKey string) error {
 	if err != nil {
 		return fmt.Errorf("gopgbase: grafana import: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
@@ -298,7 +295,7 @@ func (c *Client) ImportGrafanaDashboard(grafanaURL, apiKey string) error {
 }
 
 // updatePoolMetrics refreshes connection pool gauge metrics.
-func (o *ObservabilityLibrary) updatePoolMetrics() {
+func (o *ObservabilityLibrary) UpdatePoolMetrics() {
 	u, ok := o.client.ds.(Unwrapper)
 	if !ok {
 		return
@@ -309,4 +306,3 @@ func (o *ObservabilityLibrary) updatePoolMetrics() {
 	o.connPoolGauge.WithLabelValues("in_use").Set(float64(stats.InUse))
 	o.connPoolGauge.WithLabelValues("idle").Set(float64(stats.Idle))
 }
-

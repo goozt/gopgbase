@@ -90,7 +90,7 @@ func (m *MigrateLibrary) Version(_ context.Context) (int64, error) {
 		return 0, err
 	}
 
-	if err := goose.SetDialect("postgres"); err != nil {
+	if err = goose.SetDialect("postgres"); err != nil {
 		return 0, fmt.Errorf("migrate: set dialect: %w", err)
 	}
 

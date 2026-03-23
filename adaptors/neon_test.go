@@ -10,8 +10,8 @@ import (
 func TestBuildNeonDSN_FieldBased(t *testing.T) {
 	tests := []struct {
 		name   string
-		cfg    NeonConfig
 		wantIn []string
+		cfg    NeonConfig
 	}{
 		{
 			name: "with endpoint ID",

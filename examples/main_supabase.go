@@ -22,9 +22,9 @@ func main() {
 
 	// Supabase connection via URL (from dashboard).
 	cfg := adaptors.SupabaseConfig{
-		ConnectionURL: os.Getenv("SUPABASE_DB_URL"),
-		ProjectRef:    os.Getenv("SUPABASE_PROJECT_REF"),
-		APIKey:        os.Getenv("SUPABASE_ANON_KEY"),
+		ConnectionURL:  os.Getenv("SUPABASE_DB_URL"),
+		ProjectRef:     os.Getenv("SUPABASE_PROJECT_REF"),
+		APIKey:         os.Getenv("SUPABASE_ANON_KEY"),
 		ServiceRoleKey: os.Getenv("SUPABASE_SERVICE_ROLE_KEY"),
 	}
 

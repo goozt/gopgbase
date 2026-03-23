@@ -111,7 +111,7 @@ func (l *TimescaleLibrary) TimeBucketAgg(ctx context.Context, table, bucket, agg
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/timescale: time bucket agg: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var results []TimeBucketResult
 	for rows.Next() {
@@ -225,7 +225,7 @@ func (l *TimescaleLibrary) LTTB(ctx context.Context, table, timeCol, valueCol st
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/timescale: lttb: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var results []LTTBResult
 	for rows.Next() {

@@ -9,17 +9,10 @@ import (
 
 // TimescaleConfig configures a connection to a TimescaleDB instance.
 type TimescaleConfig struct {
-	BaseConfig
-
-	// ConnectionURL is an optional full connection string.
-	// Timescale Cloud provides this in the dashboard.
 	ConnectionURL string `json:"connection_url,omitempty"`
-
-	// ServiceID is the Timescale Cloud service identifier.
-	ServiceID string `json:"service_id,omitempty"`
-
-	// SSLRootCert is the path to the Timescale Cloud CA certificate.
-	SSLRootCert string `json:"ssl_root_cert,omitempty"`
+	ServiceID     string `json:"service_id,omitempty"`
+	SSLRootCert   string `json:"ssl_root_cert,omitempty"`
+	BaseConfig
 }
 
 // NewTimescaleAdaptor creates a DataStore connected to a TimescaleDB instance.

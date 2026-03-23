@@ -57,7 +57,7 @@ func (l *CommonLibrary) Pagination(ctx context.Context, table string, page, perP
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/common: pagination: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	return scanRowsToMaps(rows)
 }
@@ -179,12 +179,12 @@ func (l *CommonLibrary) SchemaDiff(ctx context.Context, expectedSchema map[strin
 		for rows.Next() {
 			var col, dtype string
 			if err := rows.Scan(&col, &dtype); err != nil {
-				rows.Close()
+				_ = rows.Close()
 				return nil, fmt.Errorf("gopgbase/common: schema diff scan: %w", err)
 			}
 			actualCols[col] = dtype
 		}
-		rows.Close()
+		_ = rows.Close()
 
 		if len(actualCols) == 0 {
 			changes = append(changes, SchemaChange{
@@ -250,7 +250,7 @@ func (l *CommonLibrary) Prefetch(ctx context.Context, mainTable string, ids []an
 		}
 
 		maps, err := scanRowsToMaps(rows)
-		rows.Close()
+		_ = rows.Close()
 		if err != nil {
 			return nil, err
 		}

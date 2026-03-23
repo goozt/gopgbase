@@ -26,14 +26,11 @@ import (
 // BaseConfig contains connection parameters shared by all adaptors.
 type BaseConfig struct {
 	Host     string `json:"host"`
-	Port     int    `json:"port"`
 	User     string `json:"user"`
 	Password string `json:"password"`
 	DBName   string `json:"dbname"`
-
-	// Insecure disables TLS verification/SSL where applicable.
-	// Intended for local development only — never use in production.
-	Insecure bool `json:"insecure"`
+	Port     int    `json:"port"`
+	Insecure bool   `json:"insecure"`
 }
 
 // pgxDataStore wraps a *sql.DB as a DataStore. It is the concrete

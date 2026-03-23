@@ -9,25 +9,11 @@ import (
 
 // SupabaseConfig configures a connection to a Supabase PostgreSQL database.
 type SupabaseConfig struct {
-	BaseConfig
-
-	// ConnectionURL is the Supabase connection URL from the project dashboard.
-	// Format: postgresql://postgres.[project-ref]:[password]@[host]:6543/postgres
-	// When set, takes precedence over individual fields.
-	ConnectionURL string `json:"connection_url,omitempty"`
-
-	// ProjectRef is the Supabase project reference ID (e.g., "abcdefghijklmnop").
-	ProjectRef string `json:"project_ref,omitempty"`
-
-	// APIKey is the Supabase anon or service role key.
-	// Used for Supabase-specific features via companion libraries.
-	APIKey string `json:"api_key,omitempty"`
-
-	// ServiceRoleKey is the Supabase service role key for admin operations.
+	ConnectionURL  string `json:"connection_url,omitempty"`
+	ProjectRef     string `json:"project_ref,omitempty"`
+	APIKey         string `json:"api_key,omitempty"`
 	ServiceRoleKey string `json:"service_role_key,omitempty"`
-
-	// UsePooler enables connection pooling via Supabase's built-in PgBouncer.
-	// When true, connects on port 6543 (transaction mode) instead of 5432.
+	BaseConfig
 	UsePooler bool `json:"use_pooler,omitempty"`
 }
 

@@ -10,8 +10,8 @@ import (
 func TestBuildRedshiftDSN_FieldBased(t *testing.T) {
 	tests := []struct {
 		name   string
-		cfg    RedshiftConfig
 		wantIn []string
+		cfg    RedshiftConfig
 	}{
 		{
 			name: "basic secure",

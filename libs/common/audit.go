@@ -9,13 +9,13 @@ import (
 
 // AuditEntry represents a single audit log entry.
 type AuditEntry struct {
-	ID         int64  `json:"id" db:"id"`
-	Operation  string `json:"operation" db:"operation"`
-	TableName  string `json:"table_name" db:"table_name"`
-	OldData    string `json:"old_data,omitempty" db:"old_data"`
-	NewData    string `json:"new_data,omitempty" db:"new_data"`
-	ChangedAt  string `json:"changed_at" db:"changed_at"`
-	ChangedBy  string `json:"changed_by,omitempty" db:"changed_by"`
+	Operation string `json:"operation" db:"operation"`
+	TableName string `json:"table_name" db:"table_name"`
+	OldData   string `json:"old_data,omitempty" db:"old_data"`
+	NewData   string `json:"new_data,omitempty" db:"new_data"`
+	ChangedAt string `json:"changed_at" db:"changed_at"`
+	ChangedBy string `json:"changed_by,omitempty" db:"changed_by"`
+	ID        int64  `json:"id" db:"id"`
 }
 
 // SetupAuditTrail creates the audit infrastructure (table, function, trigger)
@@ -44,7 +44,7 @@ func GetAuditLog(ctx context.Context, client *gopgbase.Client, auditTable string
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/common: get audit log: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var entries []AuditEntry
 	for rows.Next() {

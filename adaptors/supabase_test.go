@@ -30,9 +30,9 @@ func TestBuildSupabaseDSN_ConnectionURL_Insecure(t *testing.T) {
 
 func TestBuildSupabaseDSN_FieldBased(t *testing.T) {
 	tests := []struct {
-		name    string
-		cfg     SupabaseConfig
-		wantIn  []string
+		name   string
+		wantIn []string
+		cfg    SupabaseConfig
 	}{
 		{
 			name: "with project ref",

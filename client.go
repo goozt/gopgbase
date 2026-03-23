@@ -56,10 +56,10 @@ func (c *Client) DataStore() DataStore {
 
 // HealthStatus represents the result of a database health check.
 type HealthStatus struct {
-	Healthy  bool          `json:"healthy"`
-	Latency  time.Duration `json:"latency_ns"`
-	Error    string        `json:"error,omitempty"`
 	Metadata map[string]any `json:"metadata,omitempty"`
+	Error    string         `json:"error,omitempty"`
+	Latency  time.Duration  `json:"latency_ns"`
+	Healthy  bool           `json:"healthy"`
 }
 
 // HealthCheckHandler returns an http.HandlerFunc that performs a database
@@ -213,7 +213,7 @@ func (c *Client) BulkInsert(ctx context.Context, table string, columns []string,
 	}
 
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf("INSERT INTO %s (%s) VALUES ", quoteIdentifier(table), strings.Join(quotedCols, ", ")))
+	fmt.Fprintf(&b, "INSERT INTO %s (%s) VALUES ", quoteIdentifier(table), strings.Join(quotedCols, ", "))
 
 	allArgs := make([]any, 0, len(columns)*len(values))
 	paramIdx := 1
@@ -230,7 +230,7 @@ func (c *Client) BulkInsert(ctx context.Context, table string, columns []string,
 			if colIdx > 0 {
 				b.WriteString(", ")
 			}
-			b.WriteString(fmt.Sprintf("$%d", paramIdx))
+			fmt.Fprintf(&b, "$%d", paramIdx)
 			paramIdx++
 		}
 		b.WriteByte(')')
@@ -265,7 +265,7 @@ func (c *Client) BulkCopy(ctx context.Context, table string, columns []string, d
 	if err != nil {
 		return 0, fmt.Errorf("gopgbase: bulk copy: %w", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	var rowsCopied int64
 	err = conn.Raw(func(driverConn any) error {
@@ -309,7 +309,7 @@ func buildCopyData(data [][]any) string {
 			if val == nil {
 				b.WriteString("\\N")
 			} else {
-				b.WriteString(fmt.Sprintf("%v", val))
+				fmt.Fprintf(&b, "%v", val)
 			}
 		}
 		b.WriteByte('\n')
@@ -406,7 +406,7 @@ func (c *Client) ForEachRow(ctx context.Context, query string, args []any, fn fu
 	if err != nil {
 		return fmt.Errorf("gopgbase: for each row: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	cols, err := rows.Columns()
 	if err != nil {
@@ -462,14 +462,14 @@ func (c *Client) QueryBuilder() *QueryBuilderDSL {
 // QueryBuilderDSL is a fluent SQL query builder.
 type QueryBuilderDSL struct {
 	client     *Client
-	table      string
-	cols       []string
-	conditions []string
-	args       []any
-	joins      []string
 	orderBy    string
-	groupBy    string
+	table      string
 	having     string
+	groupBy    string
+	conditions []string
+	joins      []string
+	args       []any
+	cols       []string
 	limit      int
 	offset     int
 	hasLimit   bool
@@ -580,11 +580,11 @@ func (qb *QueryBuilderDSL) Build() (string, []any, error) {
 	}
 
 	if qb.hasLimit {
-		b.WriteString(fmt.Sprintf(" LIMIT %d", qb.limit))
+		fmt.Fprintf(&b, " LIMIT %d", qb.limit)
 	}
 
 	if qb.hasOffset {
-		b.WriteString(fmt.Sprintf(" OFFSET %d", qb.offset))
+		fmt.Fprintf(&b, " OFFSET %d", qb.offset)
 	}
 
 	query, err := convertPlaceholders(b.String())
@@ -613,8 +613,6 @@ func (qb *QueryBuilderDSL) Exec(ctx context.Context) (sql.Result, error) {
 	return qb.client.ds.ExecContext(ctx, query, args...)
 }
 
-// --- Placeholder Conversion ---
-
 // convertPlaceholders converts ? placeholders to Postgres $N style.
 // Rules:
 //   - If no ? present, query is returned unchanged (fast path).
@@ -624,6 +622,125 @@ func (qb *QueryBuilderDSL) Exec(ctx context.Context) (sql.Result, error) {
 //     dollar-quoted strings, block comments, line comments.
 //   - Returns error on unterminated string, comment, or dollar-quote.
 //   - Returns error on mixed ? and $N placeholders.
+//
+// skipBlockComment copies a /* ... */ block comment into result.
+func skipBlockComment(query string, i int, result *strings.Builder) (int, error) {
+	end := strings.Index(query[i+2:], "*/")
+	if end == -1 {
+		return 0, errors.New("gopgbase: unterminated block comment")
+	}
+	result.WriteString(query[i : i+2+end+2])
+	return i + 2 + end + 2, nil
+}
+
+// skipLineComment copies a -- line comment into result.
+// Returns -1 to signal end of input.
+func skipLineComment(query string, i int, result *strings.Builder) int {
+	end := strings.IndexByte(query[i:], '\n')
+	if end == -1 {
+		result.WriteString(query[i:])
+		return -1
+	}
+	result.WriteString(query[i : i+end])
+	return i + end
+}
+
+// skipDollarQuoted copies a $tag$...$tag$ dollar-quoted string into result.
+func skipDollarQuoted(query string, i int, tag string, result *strings.Builder) (int, error) {
+	end := strings.Index(query[i+len(tag):], tag)
+	if end == -1 {
+		return 0, fmt.Errorf("gopgbase: unterminated dollar-quote %s", tag)
+	}
+	result.WriteString(query[i : i+len(tag)+end+len(tag)])
+	return i + len(tag) + end + len(tag), nil
+}
+
+// skipQuoted copies a quoted string (single or double) into result, handling
+// escaped quotes by doubling. For E-strings, backslash escapes are also handled.
+func skipQuoted(query string, i int, quote byte, eString bool, result *strings.Builder) (int, error) {
+	for i < len(query) {
+		if eString && query[i] == '\\' && i+1 < len(query) {
+			result.WriteByte(query[i])
+			result.WriteByte(query[i+1])
+			i += 2
+			continue
+		}
+		if query[i] == quote {
+			result.WriteByte(quote)
+			i++
+			if i < len(query) && query[i] == quote {
+				result.WriteByte(quote)
+				i++
+				continue
+			}
+			return i, nil
+		}
+		result.WriteByte(query[i])
+		i++
+	}
+	kind := "single-quoted string"
+	if quote == '"' {
+		kind = "double-quoted identifier"
+	}
+	if eString {
+		kind = "E-string"
+	}
+	return 0, fmt.Errorf("gopgbase: unterminated %s", kind)
+}
+
+// handleDollar processes a '$' character: dollar-quoted strings or mixed placeholder detection.
+// Returns (new position, done, error). done is true if the byte was fully handled.
+func handleDollar(query string, i int, result *strings.Builder) (int, bool, error) {
+	if tag := parseDollarTag(query, i); tag != "" {
+		next, err := skipDollarQuoted(query, i, tag, result)
+		if err != nil {
+			return 0, false, err
+		}
+		return next, true, nil
+	}
+	if i+1 < len(query) && query[i+1] >= '1' && query[i+1] <= '9' {
+		return 0, false, errors.New("gopgbase: mixed placeholders: use ? or $N, not both")
+	}
+	result.WriteByte('$')
+	return i + 1, true, nil
+}
+
+// handleQuestion processes a '?' placeholder, converting to $N format.
+// Returns (new position, updated param count).
+func handleQuestion(query string, i int, n int, result *strings.Builder) (int, int) {
+	if i+1 < len(query) && query[i+1] == '?' {
+		result.WriteByte('?')
+		return i + 2, n
+	}
+	n++
+	fmt.Fprintf(result, "$%d", n)
+	return i + 1, n
+}
+
+// handleComment processes block or line comments starting at position i.
+// Returns (new position, atEnd, error).
+func handleComment(query string, i int, c byte, next1 byte, result *strings.Builder) (int, bool, error) {
+	if c == '/' && next1 == '*' {
+		next, err := skipBlockComment(query, i, result)
+		return next, false, err
+	}
+	// line comment
+	next := skipLineComment(query, i, result)
+	return next, next == -1, nil
+}
+
+// handleQuoteStart processes a quote character (', ", or E'/e') at position i.
+// Returns the new position after the closing quote.
+func handleQuoteStart(query string, i int, c byte, next1 byte, result *strings.Builder) (int, error) {
+	if (c == 'E' || c == 'e') && next1 == '\'' {
+		result.WriteByte(c)
+		result.WriteByte('\'')
+		return skipQuoted(query, i+2, '\'', true, result)
+	}
+	result.WriteByte(c)
+	return skipQuoted(query, i+1, c, false, result)
+}
+
 func convertPlaceholders(query string) (string, error) {
 	if !strings.ContainsRune(query, '?') {
 		return query, nil
@@ -634,144 +751,50 @@ func convertPlaceholders(query string) (string, error) {
 	n := 0
 	i := 0
 	for i < len(query) {
-		if i+1 < len(query) && query[i] == '/' && query[i+1] == '*' {
-			end := strings.Index(query[i+2:], "*/")
-			if end == -1 {
-				return "", errors.New("gopgbase: unterminated block comment")
-			}
-			result.WriteString(query[i : i+2+end+2])
-			i += 2 + end + 2
-			continue
+		c := query[i]
+		next1 := byte(0)
+		if i+1 < len(query) {
+			next1 = query[i+1]
 		}
 
-		if i+1 < len(query) && query[i] == '-' && query[i+1] == '-' {
-			end := strings.IndexByte(query[i:], '\n')
-			if end == -1 {
-				result.WriteString(query[i:])
-				break
+		var err error
+		switch {
+		case (c == '/' && next1 == '*') || (c == '-' && next1 == '-'):
+			var atEnd bool
+			i, atEnd, err = handleComment(query, i, c, next1, &result)
+			if atEnd {
+				return result.String(), nil
 			}
-			result.WriteString(query[i : i+end])
-			i += end
-			continue
-		}
 
-		if query[i] == '$' {
-			if tag := parseDollarTag(query, i); tag != "" {
-				end := strings.Index(query[i+len(tag):], tag)
-				if end == -1 {
-					return "", fmt.Errorf("gopgbase: unterminated dollar-quote %s", tag)
-				}
-				result.WriteString(query[i : i+len(tag)+end+len(tag)])
-				i += len(tag) + end + len(tag)
-				continue
-			}
-			if i+1 < len(query) && query[i+1] >= '1' && query[i+1] <= '9' {
-				return "", errors.New("gopgbase: mixed placeholders: use ? or $N, not both")
-			}
-			result.WriteByte(query[i])
+		case c == '$':
+			i, _, err = handleDollar(query, i, &result)
+
+		case (c == 'E' || c == 'e') && next1 == '\'', c == '\'', c == '"':
+			i, err = handleQuoteStart(query, i, c, next1, &result)
+
+		case c == '?':
+			i, n = handleQuestion(query, i, n, &result)
+
+		default:
+			result.WriteByte(c)
 			i++
-			continue
 		}
-
-		if (query[i] == 'E' || query[i] == 'e') && i+1 < len(query) && query[i+1] == '\'' {
-			result.WriteByte(query[i])
-			result.WriteByte('\'')
-			i += 2
-			closed := false
-			for i < len(query) {
-				if query[i] == '\\' && i+1 < len(query) {
-					result.WriteByte(query[i])
-					result.WriteByte(query[i+1])
-					i += 2
-					continue
-				}
-				if query[i] == '\'' {
-					result.WriteByte('\'')
-					i++
-					if i < len(query) && query[i] == '\'' {
-						result.WriteByte('\'')
-						i++
-						continue
-					}
-					closed = true
-					break
-				}
-				result.WriteByte(query[i])
-				i++
-			}
-			if !closed {
-				return "", errors.New("gopgbase: unterminated E-string")
-			}
-			continue
+		if err != nil {
+			return "", err
 		}
-
-		if query[i] == '\'' {
-			result.WriteByte('\'')
-			i++
-			closed := false
-			for i < len(query) {
-				if query[i] == '\'' {
-					result.WriteByte('\'')
-					i++
-					if i < len(query) && query[i] == '\'' {
-						result.WriteByte('\'')
-						i++
-						continue
-					}
-					closed = true
-					break
-				}
-				result.WriteByte(query[i])
-				i++
-			}
-			if !closed {
-				return "", errors.New("gopgbase: unterminated single-quoted string")
-			}
-			continue
-		}
-
-		if query[i] == '"' {
-			result.WriteByte('"')
-			i++
-			closed := false
-			for i < len(query) {
-				if query[i] == '"' {
-					result.WriteByte('"')
-					i++
-					if i < len(query) && query[i] == '"' {
-						result.WriteByte('"')
-						i++
-						continue
-					}
-					closed = true
-					break
-				}
-				result.WriteByte(query[i])
-				i++
-			}
-			if !closed {
-				return "", errors.New("gopgbase: unterminated double-quoted identifier")
-			}
-			continue
-		}
-
-		if query[i] == '?' {
-			if i+1 < len(query) && query[i+1] == '?' {
-				result.WriteByte('?')
-				i += 2
-				continue
-			}
-			n++
-			result.WriteString(fmt.Sprintf("$%d", n))
-			i++
-			continue
-		}
-
-		result.WriteByte(query[i])
-		i++
 	}
 
 	return result.String(), nil
+}
+
+// isTagStart reports whether c can start a dollar-quote tag (letter or underscore).
+func isTagStart(c byte) bool {
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
+}
+
+// isTagCont reports whether c can continue a dollar-quote tag (letter, digit, or underscore).
+func isTagCont(c byte) bool {
+	return isTagStart(c) || (c >= '0' && c <= '9')
 }
 
 // parseDollarTag detects a $tag$ dollar-quote opener at position i.
@@ -784,17 +807,12 @@ func parseDollarTag(query string, i int) string {
 	if j < len(query) && query[j] == '$' {
 		return "$$"
 	}
-	if j < len(query) {
-		c := query[j]
-		if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_') {
-			return ""
-		}
+	if j >= len(query) || !isTagStart(query[j]) {
+		return ""
 	}
 	j++
 	for j < len(query) && query[j] != '$' {
-		c := query[j]
-		if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-			(c >= '0' && c <= '9') || c == '_') {
+		if !isTagCont(query[j]) {
 			return ""
 		}
 		j++

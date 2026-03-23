@@ -10,20 +10,10 @@ import (
 // PostgresConfig configures a connection to PostgreSQL (self-hosted),
 // AWS RDS for PostgreSQL, Railway, Render, or any standard Postgres instance.
 type PostgresConfig struct {
-	BaseConfig
-
-	// ConnectionURL is an optional full connection string (e.g., DATABASE_URL).
-	// When set, it takes precedence over individual field-based configuration.
-	// Commonly used with Railway and Render which provide DATABASE_URL.
-	ConnectionURL string `json:"connection_url,omitempty"`
-
-	// ApplicationName sets the application_name connection parameter.
+	ConnectionURL   string `json:"connection_url,omitempty"`
 	ApplicationName string `json:"application_name,omitempty"`
-
-	// SSLRootCert is the path to a custom CA certificate for TLS verification.
-	// Required for AWS RDS when Insecure is false and the system CA store
-	// does not include the RDS root certificate.
-	SSLRootCert string `json:"ssl_root_cert,omitempty"`
+	SSLRootCert     string `json:"ssl_root_cert,omitempty"`
+	BaseConfig
 }
 
 // NewPostgresAdaptor creates a DataStore connected to a PostgreSQL-compatible

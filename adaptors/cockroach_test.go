@@ -10,8 +10,8 @@ import (
 func TestBuildCockroachDSN_FieldBased(t *testing.T) {
 	tests := []struct {
 		name   string
-		cfg    CockroachConfig
 		wantIn []string
+		cfg    CockroachConfig
 	}{
 		{
 			name: "basic secure",

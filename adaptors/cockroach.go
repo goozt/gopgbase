@@ -9,17 +9,10 @@ import (
 
 // CockroachConfig configures a connection to a CockroachDB cluster.
 type CockroachConfig struct {
-	BaseConfig
-
-	// ConnectionURL is an optional full connection string.
 	ConnectionURL string `json:"connection_url,omitempty"`
-
-	// ClusterID is the CockroachDB Serverless cluster identifier.
-	// Used for routing in multi-tenant CockroachDB Serverless deployments.
-	ClusterID string `json:"cluster_id,omitempty"`
-
-	// RoutingID is an alias for ClusterID used in newer CockroachDB versions.
-	RoutingID string `json:"routing_id,omitempty"`
+	ClusterID     string `json:"cluster_id,omitempty"`
+	RoutingID     string `json:"routing_id,omitempty"`
+	BaseConfig
 }
 
 // NewCockroachAdaptor creates a DataStore connected to a CockroachDB cluster.

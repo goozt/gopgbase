@@ -4,59 +4,14 @@ env:
   GOCOVERDIR: ./coverage
 
 tasks:
-  _install-ineffassign:
-    cmds:
-      - go install github.com/gordonklaus/ineffassign@latest
-    status:
-      - which ineffassign
-
-  _install-misspell:
-    cmds:
-      - go install github.com/client9/misspell/cmd/misspell@latest
-    status:
-      - which misspell
-
-  _install-gocyclo:
-    cmds:
-      - go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
-    status:
-      - which gocyclo
-
-  _install-golangci:
-    cmds:
-      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-    status:
-      - which golangci-lint
-
-  _install-gotests:
-    cmds:
-      - go install github.com/cweill/gotests/gotests@latest
-    status:
-      - which gotests
-
-  _install-gocov:
-    cmds:
-      - go install github.com/axw/gocov/gocov@latest
-    status:
-      - which gocov
-
-  _install-gocovxml:
-    cmds:
-      - go install github.com/AlekSi/gocov-xml@latest
-    status:
-      - which gocov-xml
-
-  _install-mockgen:
-    cmds:
-      - go install go.uber.org/mock/mockgen@latest
-    status:
-      - which mockgen
-
-  _install-air:
-    cmds:
-      - go install github.com/air-verse/air@latest
-    status:
-      - which air
+  _install-ineffassign: { cmds: [ go install github.com/gordonklaus/ineffassign@latest ],  status: [ which ineffassign ] }
+  _install-misspell: {cmds: [ go install github.com/client9/misspell/cmd/misspell@latest ], status: [ which misspell ] }
+  _install-gocyclo: { cmds: [ go install github.com/fzipp/gocyclo/cmd/gocyclo@latest ], status: [ which gocyclo ] }
+  _install-golangci: { cmds: [ go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest ], status: [ which golangci-lint ] }
+  _install-gotests: { cmds: [ go install github.com/cweill/gotests/gotests@latest ], status: [ which gotests ] }
+  _install-mockgen: { cmds: [ go install go.uber.org/mock/mockgen@latest ], status: [ which mockgen ] }
+  _install-air: { cmds: [ go install github.com/air-verse/air@latest ], status: [ which air ] }
+  _install-fieldalignment: { cmds: [golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest ], status: [ which fieldalignment ] }
 
   init:
     desc: Initialize development environment
@@ -66,20 +21,27 @@ tasks:
       - _install-gocyclo
       - _install-golangci
       - _install-gotests
-      - _install-gocov
-      - _install-gocovxml
       - _install-mockgen
       - _install-air
+      - _install-fieldalignment
+
+  fieldalignment-fix:
+    desc: Fix field alignment issues
+    cmds:
+      - fieldalignment -fix ./...
 
   lint:
     desc: Check if code is ready for version bump
+    deps:
+      - fieldalignment-fix
     cmds:
-      - go vet ./...
-      - test -z "$(gofmt -l -s .)"
-      - gocyclo -over 15 .
-      - ineffassign ./...
-      - misspell -error .
+      - gofmt -l -s -w .
       - golangci-lint run
+
+  fmt:
+    desc: Format code
+    cmds:
+      - go fmt ./...
 
   test:
     desc: Run tests

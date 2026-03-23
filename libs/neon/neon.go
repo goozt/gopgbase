@@ -151,7 +151,7 @@ func (l *NeonLibrary) SimilaritySearch(ctx context.Context, table, vectorCol str
 	if err != nil {
 		return nil, fmt.Errorf("gopgbase/neon: similarity search: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	cols, err := rows.Columns()
 	if err != nil {

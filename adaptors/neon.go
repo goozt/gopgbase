@@ -9,24 +9,11 @@ import (
 
 // NeonConfig configures a connection to a Neon serverless PostgreSQL database.
 type NeonConfig struct {
-	BaseConfig
-
-	// ConnectionURL is the Neon connection string from the dashboard.
-	// Format: postgresql://[user]:[password]@[endpoint].neon.tech/[dbname]
 	ConnectionURL string `json:"connection_url,omitempty"`
-
-	// ProjectID is the Neon project identifier.
-	ProjectID string `json:"project_id,omitempty"`
-
-	// BranchID specifies the Neon branch to connect to.
-	// If empty, the primary branch is used.
-	BranchID string `json:"branch_id,omitempty"`
-
-	// EndpointID is the Neon compute endpoint identifier.
-	EndpointID string `json:"endpoint_id,omitempty"`
-
-	// UsePooler enables connection pooling via Neon's built-in PgBouncer.
-	// When true, connects via the pooled endpoint (-pooler suffix).
+	ProjectID     string `json:"project_id,omitempty"`
+	BranchID      string `json:"branch_id,omitempty"`
+	EndpointID    string `json:"endpoint_id,omitempty"`
+	BaseConfig
 	UsePooler bool `json:"use_pooler,omitempty"`
 }
 

@@ -13,14 +13,14 @@ import (
 
 // mockDataStore implements DataStore for testing.
 type mockDataStore struct {
-	pingErr   error
-	closeErr  error
-	beginErr  error
-	execErr   error
-	queryErr  error
+	pingErr    error
+	closeErr   error
+	beginErr   error
+	execErr    error
+	queryErr   error
 	execResult sql.Result
-	rows      *sql.Rows
-	tx        *sql.Tx
+	rows       *sql.Rows
+	tx         *sql.Tx
 }
 
 func (m *mockDataStore) QueryRowContext(_ context.Context, _ string, _ ...any) *sql.Row {
@@ -172,20 +172,20 @@ func TestQuoteIdentifier(t *testing.T) {
 
 func TestBuildFieldMap(t *testing.T) {
 	type testStruct struct {
-		ID       int    `db:"id"`
-		Name     string `db:"name"`
-		Ignored  string `db:"-"`
-		NoTag    string
-		private  string //nolint:unused
+		Name    string `db:"name"`
+		Ignored string `db:"-"`
+		NoTag   string
+		private string //nolint:unused // testing that private fields are skipped
+		ID      int    `db:"id"`
 	}
 
 	fm := buildFieldMap(reflect.TypeOf(testStruct{}))
 
-	assert.Equal(t, 0, fm["id"])
-	assert.Equal(t, 1, fm["name"])
+	assert.Equal(t, 4, fm["id"])
+	assert.Equal(t, 0, fm["name"])
 	_, hasIgnored := fm["-"]
 	assert.False(t, hasIgnored)
-	assert.Equal(t, 3, fm["notag"])
+	assert.Equal(t, 2, fm["notag"])
 }
 
 func TestBuildCopyData(t *testing.T) {

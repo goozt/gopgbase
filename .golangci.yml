@@ -1,8 +1,4 @@
-linters-settings:
-  govet:
-    enable-all: true
-  gocyclo:
-    max-complexity: 15
+version: "2"
 
 linters:
   enable:
@@ -10,12 +6,15 @@ linters:
     - errcheck
     - staticcheck
     - unused
-    - gosimple
     - ineffassign
     - misspell
     - gocyclo
-
-issues:
-  exclude-dirs:
-    - examples
-    - testdata
+  settings:
+    govet:
+      enable-all: true
+    gocyclo:
+      min-complexity: 15
+  exclusions:
+    paths:
+      - ^examples/
+      - ^testdata/
