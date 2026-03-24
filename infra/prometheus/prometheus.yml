@@ -1,0 +1,37 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: gopgbase-local
+    environment: development
+
+scrape_configs:
+  # OTel Collector Prometheus exporter — receives traces/metrics from apps via OTLP
+  - job_name: otel-collector
+    static_configs:
+      - targets: ["gopgbase_otel_collector:8889"]
+        labels:
+          service: otel-collector
+
+  # OTel Collector self-metrics
+  - job_name: otel-collector-internal
+    static_configs:
+      - targets: ["gopgbase_otel_collector:8888"]
+        labels:
+          service: otel-collector-internal
+
+  # Prometheus self-monitoring
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+        labels:
+          service: prometheus
+
+  # TimescaleDB via postgres_exporter (scrape if running)
+  # Uncomment and deploy postgres_exporter sidecar to enable
+  # - job_name: timescaledb
+  #   static_configs:
+  #     - targets: ["gopgbase_postgres_exporter:9187"]
+  #       labels:
+  #         service: timescaledb
+  #         db: tsdb

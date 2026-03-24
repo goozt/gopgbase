@@ -121,10 +121,10 @@ tasks:
     desc: Start database containers
     cmds:
       - docker compose up -d --wait
-      - docker compose exec -T gopgbase_cockroachdb ./cockroach --host=gopgbase_cockroachdb:26357 init --insecure
+      - docker compose exec -T gopgbase_cockroachdb cockroach init --certs-dir=/cockroach/cockroach-certs --host=gopgbase_cockroachdb:26357
       - docker compose exec -T gopgbase_cockroachdb grep 'node starting' /cockroach/cockroach-data/logs/cockroach.log -A 11
       - docker compose exec -T gopgbase_cockroachdb cockroach sql --certs-dir=/cockroach/cockroach-certs --user root -e "CREATE DATABASE IF NOT EXISTS mydb; CREATE USER IF NOT EXISTS postgres WITH PASSWORD 'secret'; GRANT ALL ON DATABASE mydb TO postgres;"
-      
+
   db:down:
     desc: Stop and remove database containers
     cmds:
@@ -169,10 +169,20 @@ tasks:
       - rm -rf mocks/
       - rm -rf tmp/
 
+  docker-remote:
+    desc: Run a command on a remote Docker host
+    dotenv: [ .env ]
+    cmds:
+      - ssh $REMOTE_USER@$REMOTE_HOST "mkdir -p ${HOST_DIR}/cert ${HOST_DIR}/infra"
+      - scp -r .certs/* $REMOTE_USER@$REMOTE_HOST:${HOST_DIR}/cert/
+      - scp -r infra/* $REMOTE_USER@$REMOTE_HOST:${HOST_DIR}/infra/
+      - ssh $REMOTE_USER@$REMOTE_HOST "find ${HOST_DIR}/cert -name '*.key' -exec chmod 600 {} +"
+
   crdb:ca:
     desc: Generate CA certificate and key for secure CockroachDB cluster
     dotenv: [ .env ]
     cmds:
+      - rm -rf .certs
       - mkdir -p .certs/ca
       - openssl genrsa -out .certs/ca/ca.key 2048
       - openssl req -x509 -nodes -days 365 -key .certs/ca/ca.key -out .certs/ca/ca.crt -subj '/CN=LocalCA/O=Goozt/C=IN'
@@ -184,6 +194,10 @@ tasks:
         cmd: | 
           mkdir -p ./.certs/{{.ITEM}}
           openssl genrsa -out ./.certs/{{.ITEM}}/node.key 2048
-          openssl req -new -key ./.certs/{{.ITEM}}/node.key -out ./.certs/{{.ITEM}}/node.csr -subj "/CN=ns1.n2h.me/O=Goozt/C=IN"
-          SAN_PARAM="[SAN]\nsubjectAltName=IP:$NODE_IP,DNS:$NODE_DNS" \
-            openssl x509 -req -in ./.certs/{{.ITEM}}/node.csr -CA ./.certs/ca/ca.crt -CAkey ./.certs/ca/ca.key -CAcreateserial -out ./.certs/{{.ITEM}}/node.crt -days 365 -extfile <(echo -e "$SAN_PARAM") -extensions SAN
+          openssl req -new -key ./.certs/{{.ITEM}}/node.key -out ./.certs/{{.ITEM}}/node.csr -subj "/CN=$NODE_DNS/O=Goozt/C=IN"
+          echo -e "subjectAltName=IP:$NODE_IP,DNS:$NODE_DNS,DNS:{{.ITEM}}" > ./.certs/{{.ITEM}}/node.ext
+          openssl x509 -req -in ./.certs/{{.ITEM}}/node.csr \
+            -CA ./.certs/ca/ca.crt -CAkey ./.certs/ca/ca.key -CAcreateserial \
+            -out ./.certs/{{.ITEM}}/node.crt -days 365 \
+            -extfile ./.certs/{{.ITEM}}/node.ext
+          rm -rf ./.certs/{{.ITEM}}/node.ext ./.certs/{{.ITEM}}/node.csr

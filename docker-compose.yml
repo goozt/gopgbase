@@ -18,21 +18,23 @@ services:
 
   gopgbase_cockroachdb:
     container_name: gopgbase_cockroachdb
+    hostname: gopgbase_cockroachdb
     image: cockroachdb/cockroach:v26.1.1
-    command: |
-      start --certs-dir=/cockroach/cockroach-certs \
-      --advertise-addr=gopgbase_cockroachdb:26357 \
-      --listen-addr=gopgbase_cockroachdb:26357 \
-      --http-addr=gopgbase_cockroachdb:8080 \
-      --sql-addr=gopgbase_cockroachdb:26257 \
-      --join=gopgbase_cockroachdb:26357,gopgbase_cockroachdb_subnode_1:26357,gopgbase_cockroachdb_subnode_2:26357
+    command:
+      - start
+      - --certs-dir=/cockroach/cockroach-certs
+      - --advertise-addr=gopgbase_cockroachdb:26357
+      - --listen-addr=gopgbase_cockroachdb:26357
+      - --http-addr=gopgbase_cockroachdb:8080
+      - --sql-addr=gopgbase_cockroachdb:26257
+      - --join=gopgbase_cockroachdb:26357,gopgbase_cockroachdb_subnode_1:26357,gopgbase_cockroachdb_subnode_2:26357
     ports:
       - "26257:26257"
       - "8080:8080"
     volumes:
       - crdbdata:/cockroach/cockroach-data
-      - ./.certs/gopgbase_cockroachdb:/cockroach/cockroach-certs
-      - ./.certs/ca/ca.crt:/cockroach/ca.crt
+      - ${HOST_DIR}/cert/gopgbase_cockroachdb:/cockroach/cockroach-certs
+      - ${HOST_DIR}/cert/ca/ca.crt:/cockroach/cockroach-certs/ca.crt
     healthcheck:
       test: ["CMD", "cockroach", "node", "status", "--certs-dir=/cockroach/cockroach-certs"]
       interval: 5s
@@ -41,21 +43,23 @@ services:
 
   gopgbase_cockroachdb_subnode_1:
     container_name: gopgbase_cockroachdb_subnode_1
+    hostname: gopgbase_cockroachdb_subnode_1
     image: cockroachdb/cockroach:v26.1.1
-    command: |
-      start --certs-dir=/cockroach/cockroach-certs \
-      --advertise-addr=gopgbase_cockroachdb_subnode_1:26357 \
-      --listen-addr=gopgbase_cockroachdb_subnode_1:26357 \
-      --http-addr=gopgbase_cockroachdb_subnode_1:8081 \
-      --sql-addr=gopgbase_cockroachdb_subnode_1:26258 \
-      --join=gopgbase_cockroachdb:26357,gopgbase_cockroachdb_subnode_1:26357,gopgbase_cockroachdb_subnode_2:26357
+    command:
+      - start
+      - --certs-dir=/cockroach/cockroach-certs
+      - --advertise-addr=gopgbase_cockroachdb_subnode_1:26357
+      - --listen-addr=gopgbase_cockroachdb_subnode_1:26357
+      - --http-addr=gopgbase_cockroachdb_subnode_1:8081
+      - --sql-addr=gopgbase_cockroachdb_subnode_1:26258
+      - --join=gopgbase_cockroachdb:26357,gopgbase_cockroachdb_subnode_1:26357,gopgbase_cockroachdb_subnode_2:26357
     ports:
       - "26258:26258"
       - "8081:8081"
     volumes:
-      - crdbdata:/cockroach/cockroach-data
-      - ./.certs/gopgbase_cockroachdb_subnode_1:/cockroach/cockroach-certs
-      - ./.certs/ca/ca.crt:/cockroach/ca.crt
+      - crdbdata_1:/cockroach/cockroach-data
+      - ${HOST_DIR}/cert/gopgbase_cockroachdb_subnode_1:/cockroach/cockroach-certs
+      - ${HOST_DIR}/cert/ca/ca.crt:/cockroach/cockroach-certs/ca.crt
     depends_on:
       - gopgbase_cockroachdb
     healthcheck:
@@ -66,21 +70,23 @@ services:
 
   gopgbase_cockroachdb_subnode_2:
     container_name: gopgbase_cockroachdb_subnode_2
+    hostname: gopgbase_cockroachdb_subnode_2
     image: cockroachdb/cockroach:v26.1.1
-    command: |
-      start --certs-dir=/cockroach/cockroach-certs \
-      --advertise-addr=gopgbase_cockroachdb_subnode_2:26357 \
-      --listen-addr=gopgbase_cockroachdb_subnode_2:26357 \
-      --http-addr=gopgbase_cockroachdb_subnode_2:8082 \
-      --sql-addr=gopgbase_cockroachdb_subnode_2:26259 \
-      --join=gopgbase_cockroachdb:26357,gopgbase_cockroachdb_subnode_1:26357,gopgbase_cockroachdb_subnode_2:26357
+    command:
+      - start
+      - --certs-dir=/cockroach/cockroach-certs
+      - --advertise-addr=gopgbase_cockroachdb_subnode_2:26357
+      - --listen-addr=gopgbase_cockroachdb_subnode_2:26357
+      - --http-addr=gopgbase_cockroachdb_subnode_2:8082
+      - --sql-addr=gopgbase_cockroachdb_subnode_2:26259
+      - --join=gopgbase_cockroachdb:26357,gopgbase_cockroachdb_subnode_1:26357,gopgbase_cockroachdb_subnode_2:26357
     ports:
       - "26259:26259"
       - "8082:8082"
     volumes:
-      - crdbdata:/cockroach/cockroach-data
-      - ./.certs/gopgbase_cockroachdb_subnode_2:/cockroach/cockroach-certs
-      - ./.certs/ca/ca.crt:/cockroach/ca.crt
+      - crdbdata_2:/cockroach/cockroach-data
+      - ${HOST_DIR}/cert/gopgbase_cockroachdb_subnode_2:/cockroach/cockroach-certs
+      - ${HOST_DIR}/cert/ca/ca.crt:/cockroach/cockroach-certs/ca.crt
     depends_on:
       - gopgbase_cockroachdb
     healthcheck:
@@ -106,7 +112,75 @@ services:
       timeout: 5s
       retries: 5
 
+  gopgbase_prometheus:
+    container_name: gopgbase_prometheus
+    image: prom/prometheus:v3.3.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ${HOST_DIR}/infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - promdata:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.enable-remote-write-receiver
+      - --web.enable-lifecycle
+    depends_on:
+      gopgbase_timescaledb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gopgbase_grafana:
+    container_name: gopgbase_grafana
+    image: grafana/grafana:11.6.1
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: secret
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_FEATURE_TOGGLES_ENABLE: traceqlEditor traceToMetrics
+    volumes:
+      - ${HOST_DIR}/infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafanadata:/var/lib/grafana
+    depends_on:
+      gopgbase_prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gopgbase_otel_collector:
+    container_name: gopgbase_otel_collector
+    image: otel/opentelemetry-collector-contrib:0.147.0
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Collector self-metrics
+      - "8889:8889"   # Prometheus scrape exporter
+    volumes:
+      - ${HOST_DIR}/infra/otel/otel-collector.yml:/etc/otelcol-contrib/config.yaml:ro
+    depends_on:
+      gopgbase_prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8888/metrics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   pgdata:
   crdbdata:
+  crdbdata_1:
+  crdbdata_2:
   tsdata:
+  promdata:
+  grafanadata:
