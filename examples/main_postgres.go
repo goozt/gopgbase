@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/goozt/gopgbase"
 	"github.com/goozt/gopgbase/adaptors"
@@ -20,11 +21,15 @@ import (
 
 func main() {
 	ctx := context.Background()
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "localhost"
+	}
 
 	// Option 1: Field-based configuration (self-hosted or RDS).
 	cfg := adaptors.PostgresConfig{
 		BaseConfig: adaptors.BaseConfig{
-			Host:     "localhost",
+			Host:     dbHost,
 			Port:     5432,
 			User:     "postgres",
 			Password: "secret",
@@ -56,44 +61,59 @@ func main() {
 	}
 	fmt.Println("Connected to PostgreSQL!")
 
-	// Run a transaction.
+	// Count total admins and active MFA admins.
+	totalAdmins, err := client.Count(ctx, "admins", "")
+	if err != nil {
+		log.Fatalf("count admins: %v", err)
+	}
+	mfaAdmins, err := client.Count(ctx, "admins", "mfa_enabled = $1", true)
+	if err != nil {
+		log.Fatalf("count mfa admins: %v", err)
+	}
+	fmt.Printf("Admins: total=%d, mfa_enabled=%d\n", totalAdmins, mfaAdmins)
+
+	// Run a transaction to insert a record in admins.
+	newAdminEmail := fmt.Sprintf("dev-%d@gopgbase.local", time.Now().Unix())
 	err = client.Transaction(ctx, func(tx *sql.Tx) error {
-		_, execErr := tx.ExecContext(ctx, "INSERT INTO users (name, email) VALUES ($1, $2)", "Dave", "dave@example.com")
+		_, execErr := tx.ExecContext(ctx, "INSERT INTO admins (email, name, password_hash, role, mfa_enabled) VALUES ($1, $2, $3, $4, $5)", newAdminEmail, "Dev Example", "$2a$12$dummyhash", "admin", false)
 		return execErr
 	})
 	if err != nil {
-		log.Printf("transaction: %v", err)
+		log.Fatalf("transaction insert admin: %v", err)
 	}
+	fmt.Printf("Inserted new admin: %s\n", newAdminEmail)
 
-	// Count rows.
-	count, err := client.Count(ctx, "users", "active = $1", true)
+	// Check existence with Exists helper.
+	exists, err := client.Exists(ctx, "SELECT 1 FROM admins WHERE email = $1", newAdminEmail)
 	if err != nil {
-		log.Printf("count: %v", err)
-	} else {
-		fmt.Printf("Active users: %d\n", count)
+		log.Fatalf("exists check: %v", err)
 	}
+	fmt.Printf("Inserted admin exists: %v\n", exists)
 
-	// Check existence.
-	exists, err := client.Exists(ctx, "SELECT 1 FROM users WHERE email = $1", "alice@example.com")
-	if err != nil {
-		log.Printf("exists: %v", err)
-	} else {
-		fmt.Printf("User exists: %v\n", exists)
-	}
-
-	// QueryBuilder.
+	// Query using QueryBuilder and the plans table.
 	rows, err := client.QueryBuilder().
-		Select("users").
-		Columns("id", "name", "email").
-		Where("age > ?", 18).
-		OrderBy("name ASC").
-		Limit(10).
+		Select("plans").
+		Columns("id", "slug", "name", "price_cents").
+		Where("active = $1", true).
+		OrderBy("id ASC").
+		Limit(5).
 		Query(ctx)
 	if err != nil {
-		log.Printf("query builder: %v", err)
-	} else {
-		rows.Close()
-		fmt.Println("QueryBuilder executed successfully")
+		log.Fatalf("query builder: %v", err)
+	}
+	defer rows.Close()
+	fmt.Println("Active plans:")
+	for rows.Next() {
+		var id int
+		var slug, name string
+		var priceCents int
+		if scanErr := rows.Scan(&id, &slug, &name, &priceCents); scanErr != nil {
+			log.Fatalf("scan plan row: %v", scanErr)
+		}
+		fmt.Printf("  - %d %s (%s) %d cents\n", id, slug, name, priceCents)
+	}
+	if rowsErr := rows.Err(); rowsErr != nil {
+		log.Fatalf("rows error: %v", rowsErr)
 	}
 
 	fmt.Println("Postgres example complete!")

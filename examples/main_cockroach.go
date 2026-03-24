@@ -21,9 +21,9 @@ func main() {
 		BaseConfig: adaptors.BaseConfig{
 			Host:     os.Getenv("CRDB_HOST"),
 			Port:     26257,
-			User:     os.Getenv("CRDB_USER"),
-			Password: os.Getenv("CRDB_PASSWORD"),
-			DBName:   os.Getenv("CRDB_DBNAME"),
+			User:     "postgres",
+			Password: "secret",
+			DBName:   "tsdb",
 		},
 		ClusterID: os.Getenv("CRDB_CLUSTER_ID"),
 	}

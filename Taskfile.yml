@@ -117,9 +117,73 @@ tasks:
           } END { for (p in size) printf "%10.2f KB  %s\n", size[p]/1024, p }' |
           sort -rn | head -30
 
+  db:up:
+    desc: Start database containers
+    cmds:
+      - docker compose up -d --wait
+      - docker compose exec -T gopgbase_cockroachdb ./cockroach --host=gopgbase_cockroachdb:26357 init --insecure
+      - docker compose exec -T gopgbase_cockroachdb grep 'node starting' /cockroach/cockroach-data/logs/cockroach.log -A 11
+      - docker compose exec -T gopgbase_cockroachdb cockroach sql --certs-dir=/cockroach/cockroach-certs --user root -e "CREATE DATABASE IF NOT EXISTS mydb; CREATE USER IF NOT EXISTS postgres WITH PASSWORD 'secret'; GRANT ALL ON DATABASE mydb TO postgres;"
+      
+  db:down:
+    desc: Stop and remove database containers
+    cmds:
+      - docker compose down -v
+
+  db:fixtures:
+    desc: Load fixtures into databases
+    cmds:
+      - docker compose exec -T gopgbase_postgres psql -U postgres -d mydb < testdata/postgres_fixtures.sql
+      - docker compose exec -T gopgbase_cockroachdb cockroach sql --certs-dir=/cockroach/cockroach-certs -d mydb < testdata/cockroachdb_fixtures.sql
+      - docker compose exec -T gopgbase_timescaledb psql -U postgres -d tsdb < testdata/timescaledb_fixtures.sql
+
+  db:postgres:
+    desc: Run postgres example against local container
+    dotenv: [ .env ]
+    cmds:
+      - go run ./examples/main_postgres.go
+
+  db:cockroach:
+    desc: Run cockroach example against local container
+    dotenv: [ .env ]
+    cmds:
+      - go run ./examples/main_cockroach.go
+
+  db:timescale:
+    desc: Run timescale example against local container
+    dotenv: [ .env ]
+    cmds:
+      - go run ./examples/main_timescale.go
+
+  db:restart:
+    desc: Restart databases (down + up)
+    cmds:
+      - task: db:down
+      - task: db:up
+      - task: db:fixtures
+
   clean:
     desc: Clean generated artifacts
     cmds:
       - rm -rf {{.GOCOVERDIR}}
       - rm -rf mocks/
       - rm -rf tmp/
+
+  crdb:ca:
+    desc: Generate CA certificate and key for secure CockroachDB cluster
+    dotenv: [ .env ]
+    cmds:
+      - mkdir -p .certs/ca
+      - openssl genrsa -out .certs/ca/ca.key 2048
+      - openssl req -x509 -nodes -days 365 -key .certs/ca/ca.key -out .certs/ca/ca.crt -subj '/CN=LocalCA/O=Goozt/C=IN'
+
+      - for:
+          - gopgbase_cockroachdb
+          - gopgbase_cockroachdb_subnode_1
+          - gopgbase_cockroachdb_subnode_2
+        cmd: | 
+          mkdir -p ./.certs/{{.ITEM}}
+          openssl genrsa -out ./.certs/{{.ITEM}}/node.key 2048
+          openssl req -new -key ./.certs/{{.ITEM}}/node.key -out ./.certs/{{.ITEM}}/node.csr -subj "/CN=ns1.n2h.me/O=Goozt/C=IN"
+          SAN_PARAM="[SAN]\nsubjectAltName=IP:$NODE_IP,DNS:$NODE_DNS" \
+            openssl x509 -req -in ./.certs/{{.ITEM}}/node.csr -CA ./.certs/ca/ca.crt -CAkey ./.certs/ca/ca.key -CAcreateserial -out ./.certs/{{.ITEM}}/node.crt -days 365 -extfile <(echo -e "$SAN_PARAM") -extensions SAN

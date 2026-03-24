@@ -1,0 +1,112 @@
+services:
+  gopgbase_postgres:
+    container_name: gopgbase_postgres
+    image: postgres:18.3-alpine3.23
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: mydb
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  gopgbase_cockroachdb:
+    container_name: gopgbase_cockroachdb
+    image: cockroachdb/cockroach:v26.1.1
+    command: |
+      start --certs-dir=/cockroach/cockroach-certs \
+      --advertise-addr=gopgbase_cockroachdb:26357 \
+      --listen-addr=gopgbase_cockroachdb:26357 \
+      --http-addr=gopgbase_cockroachdb:8080 \
+      --sql-addr=gopgbase_cockroachdb:26257 \
+      --join=gopgbase_cockroachdb:26357,gopgbase_cockroachdb_subnode_1:26357,gopgbase_cockroachdb_subnode_2:26357
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+    volumes:
+      - crdbdata:/cockroach/cockroach-data
+      - ./.certs/gopgbase_cockroachdb:/cockroach/cockroach-certs
+      - ./.certs/ca/ca.crt:/cockroach/ca.crt
+    healthcheck:
+      test: ["CMD", "cockroach", "node", "status", "--certs-dir=/cockroach/cockroach-certs"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  gopgbase_cockroachdb_subnode_1:
+    container_name: gopgbase_cockroachdb_subnode_1
+    image: cockroachdb/cockroach:v26.1.1
+    command: |
+      start --certs-dir=/cockroach/cockroach-certs \
+      --advertise-addr=gopgbase_cockroachdb_subnode_1:26357 \
+      --listen-addr=gopgbase_cockroachdb_subnode_1:26357 \
+      --http-addr=gopgbase_cockroachdb_subnode_1:8081 \
+      --sql-addr=gopgbase_cockroachdb_subnode_1:26258 \
+      --join=gopgbase_cockroachdb:26357,gopgbase_cockroachdb_subnode_1:26357,gopgbase_cockroachdb_subnode_2:26357
+    ports:
+      - "26258:26258"
+      - "8081:8081"
+    volumes:
+      - crdbdata:/cockroach/cockroach-data
+      - ./.certs/gopgbase_cockroachdb_subnode_1:/cockroach/cockroach-certs
+      - ./.certs/ca/ca.crt:/cockroach/ca.crt
+    depends_on:
+      - gopgbase_cockroachdb
+    healthcheck:
+      test: ["CMD", "cockroach", "node", "status", "--certs-dir=/cockroach/cockroach-certs"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  gopgbase_cockroachdb_subnode_2:
+    container_name: gopgbase_cockroachdb_subnode_2
+    image: cockroachdb/cockroach:v26.1.1
+    command: |
+      start --certs-dir=/cockroach/cockroach-certs \
+      --advertise-addr=gopgbase_cockroachdb_subnode_2:26357 \
+      --listen-addr=gopgbase_cockroachdb_subnode_2:26357 \
+      --http-addr=gopgbase_cockroachdb_subnode_2:8082 \
+      --sql-addr=gopgbase_cockroachdb_subnode_2:26259 \
+      --join=gopgbase_cockroachdb:26357,gopgbase_cockroachdb_subnode_1:26357,gopgbase_cockroachdb_subnode_2:26357
+    ports:
+      - "26259:26259"
+      - "8082:8082"
+    volumes:
+      - crdbdata:/cockroach/cockroach-data
+      - ./.certs/gopgbase_cockroachdb_subnode_2:/cockroach/cockroach-certs
+      - ./.certs/ca/ca.crt:/cockroach/ca.crt
+    depends_on:
+      - gopgbase_cockroachdb
+    healthcheck:
+      test: ["CMD", "cockroach", "node", "status", "--certs-dir=/cockroach/cockroach-certs"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  gopgbase_timescaledb:
+    container_name: gopgbase_timescaledb
+    image: timescale/timescaledb-ha:pg18
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: tsdb
+    volumes:
+      - tsdata:/home/postgres/pgdata/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  crdbdata:
+  tsdata:
